@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'welcome_screen.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
+import 'splash_screen.dart'; // ← زدنا splash screen
 
 void main() {
   runApp(const MyApp());
@@ -18,8 +19,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.teal,
       ),
-      home: const WelcomeScreen(), // الصفحة اللي تظهر أولاً
+
+      // ← الآن splash screen هي اللي تظهر أولاً
+      home: const SplashScreen(),
+
       routes: {
+        '/welcome': (context) => const WelcomeScreen(), // ← زدناها
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
       },

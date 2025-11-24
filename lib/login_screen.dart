@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'home_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,10 +13,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
   bool _isLoading = false;
 
   @override
@@ -44,8 +43,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       final data = jsonDecode(response.body);
-
-      // حماية ضد Null
       final message = data['message'] ?? "Connexion réussie !";
       final user = data['user'] ?? {};
       final userEmail = user['email'] ?? '';
@@ -77,70 +74,93 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
-      appBar: AppBar(
-        title: const Text('Se connecter'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.teal,
-        elevation: 0,
-      ),
-      body: Center(
+      body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 10,
-                  offset: Offset(0, 5),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 30),
+
+                // Logo
+                const Icon(Icons.cached, size: 80, color: Colors.teal),
+                const SizedBox(height: 8),
+                RichText(
+                  text: const TextSpan(
+                    text: "Every",
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black),
+                    children: [
+                      TextSpan(text: "day", style: TextStyle(color: Colors.teal)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 40),
+
+                // Email
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: "Email Address",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Veuillez entrer votre email';
+                    if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) return 'Email non valide';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Password
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: "Password",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.length < 6) return 'Le mot de passe est trop court';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Login Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _login,
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text("LOG IN", style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                // Sign Up link
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Don’t have an account? "),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const  RegisterScreen()),
+                        );
+                      },
+                      child: const Text("Sign Up", style: TextStyle(color: Colors.teal)),
+                    ),
+                  ],
                 ),
               ],
-            ),
-            width: 400,
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(labelText: 'Email'),
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return 'Veuillez entrer votre email';
-                      if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) return 'Email non valide';
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: const InputDecoration(labelText: 'Mot de passe'),
-                    obscureText: true,
-                    validator: (value) {
-                      if (value == null || value.length < 6) return 'Le mot de passe est trop court';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 25),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _login,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                      ),
-                      child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('Se connecter', style: TextStyle(fontSize: 16)),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ),
