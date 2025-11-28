@@ -18,7 +18,6 @@ class _AjouterHabitPageState extends State<AjouterHabitPage> {
   String type = '';
   double duration = 30;
   TimeOfDay? time;
-  bool completed = false;
 
   final List<String> habitTypes = ['Health', 'Work', 'Leisure', 'Learning'];
 
@@ -49,7 +48,7 @@ class _AjouterHabitPageState extends State<AjouterHabitPage> {
         'type': type.isNotEmpty ? type : '',
         'duree': '${duration.toInt()} min',
         'heure': time != null ? '${time!.hour}:${time!.minute}' : '',
-        'completed': completed,
+        'completed': false, // نبقيها false تلقائياً
       }),
     );
 
@@ -67,30 +66,32 @@ class _AjouterHabitPageState extends State<AjouterHabitPage> {
   }
 
   Widget _buildStepContent() {
+    String motivation = '';
+    Widget content = const SizedBox();
+
     switch (_currentStep) {
       case 0:
-        return Column(
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                  color: Colors.teal.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 8)]),
-              child: TextFormField( //CASE 0 "NOM"
-                decoration: const InputDecoration(
-                  labelText: 'Habit Name',
-                  prefixIcon: Icon(Icons.edit),
-                ),
-                onChanged: (val) => setState(() => name = val),
+        motivation = "Commencez votre nouvelle habitude avec énergie!";
+        content = Card(
+          color: Colors.teal.shade50,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: TextFormField(
+              decoration: const InputDecoration(
+                labelText: 'Habit Name',
+                prefixIcon: Icon(Icons.edit),
               ),
+              onChanged: (val) => setState(() => name = val),
             ),
-          ],
+          ),
         );
+        break;
       case 1:
-        return Wrap(//CASE 1 "TYPE"
-          spacing: 8,
+        motivation = "Choisissez le type qui vous inspire le plus!";
+        content = Wrap(
+          spacing: 10,
+          alignment: WrapAlignment.center,
           children: habitTypes.map((t) {
             final selected = t == type;
             return ChoiceChip(
@@ -101,8 +102,11 @@ class _AjouterHabitPageState extends State<AjouterHabitPage> {
             );
           }).toList(),
         );
+        break;
       case 2:
-        return Column(//CASE 2 "DUREE"
+        motivation = "Définissez la durée idéale pour cette habitude!";
+        content = Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text('Duration: ${duration.toInt()} min', style: const TextStyle(fontSize: 18)),
             Slider(
@@ -115,14 +119,14 @@ class _AjouterHabitPageState extends State<AjouterHabitPage> {
             ),
           ],
         );
+        break;
       case 3:
-        return Column(//CASE 3 "TIME"
+        motivation = "Choisissez l'heure parfaite pour votre habitude!";
+        content = Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              time != null ? 'Time: ${time!.format(context)}' : 'Select Time',
-              style: const TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 20),
+            Text(time != null ? 'Time: ${time!.format(context)}' : 'Select Time', style: const TextStyle(fontSize: 18)),
+            const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () async {
                 final selected = await showTimePicker(
@@ -135,36 +139,45 @@ class _AjouterHabitPageState extends State<AjouterHabitPage> {
             ),
           ],
         );
+        break;
       case 4:
-        return Column(
-          children: [//CASE 4 "CONFURMATION"
-            Card(
-              color: Colors.teal.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Name: ${name.isNotEmpty ? name : ''}'),
-                    Text('Type: ${type.isNotEmpty ? type : ''}'),
-                    Text('Duration: ${duration.toInt()} min'),
-                    Text('Time: ${time != null ? time!.format(context) : ''}'),
-                    Text('Completed: ${completed ? "Yes" : "No"}'),
-                  ],
-                ),
-              ),
+        motivation = "Voici le résumé final de votre habitude:";
+        content = Card(
+          color: Colors.teal.shade50,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Name: ${name.isNotEmpty ? name : ''}', style: const TextStyle(fontSize: 16)),
+                Text('Type: ${type.isNotEmpty ? type : ''}', style: const TextStyle(fontSize: 16)),
+                Text('Duration: ${duration.toInt()} min', style: const TextStyle(fontSize: 16)),
+                Text('Time: ${time != null ? time!.format(context) : ''}', style: const TextStyle(fontSize: 16)),
+              ],
+            ),
+          ),
+        );
+        break;
+    }
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              motivation,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic, color: Colors.black87),
             ),
             const SizedBox(height: 20),
-            SwitchListTile(
-              title: const Text('Completed?'),
-              value: completed,
-              onChanged: (val) => setState(() => completed = val),
-            ),
+            content,
           ],
-        );
-      default:
-        return const SizedBox();
-    }
+        ),
+      ),
+    );
   }
 
   @override
@@ -175,7 +188,7 @@ class _AjouterHabitPageState extends State<AjouterHabitPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            LinearProgressIndicator( ///////////////////////////
+            LinearProgressIndicator(
               value: (_currentStep + 1) / 5,
               backgroundColor: Colors.grey.shade300,
               color: Colors.teal,
@@ -191,6 +204,7 @@ class _AjouterHabitPageState extends State<AjouterHabitPage> {
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
                     child: const Text('Previous'),
                   ),
+                const Spacer(),
                 ElevatedButton(
                   onPressed: () {
                     if (_currentStep < 4) {

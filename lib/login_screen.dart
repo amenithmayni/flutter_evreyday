@@ -45,16 +45,21 @@ class _LoginScreenState extends State<LoginScreen> {
       final data = jsonDecode(response.body);
       final message = data['message'] ?? "Connexion réussie !";
       final user = data['user'] ?? {};
+      final userName = user['username'] ?? ''; // username réel de l'utilisateur
       final userEmail = user['email'] ?? '';
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
         );
+        // Passer username + email للـ HomeScreen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => HomeScreen(userName: userEmail),
+            builder: (context) => HomeScreen(
+              userName: userName,
+              email: userEmail,
+            ),
           ),
         );
       } else {
@@ -153,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const  RegisterScreen()),
+                          MaterialPageRoute(builder: (_) => const RegisterScreen()),
                         );
                       },
                       child: const Text("Sign Up", style: TextStyle(color: Colors.teal)),
