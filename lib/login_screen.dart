@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
         );
-        // Passer username + email للـ HomeScreen
+        // Passer username + email  HomeScreen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(

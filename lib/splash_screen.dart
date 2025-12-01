@@ -19,20 +19,20 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Animation Controller
     _controller = AnimationController(
-      duration: const Duration(seconds: 1), // مدة Zoom
+      duration: const Duration(seconds: 1), // duree Zoom
       vsync: this,
     );
 
-    // Scale Animation: يبدأ صغير ويكبر شويّة
+    // Scale Animation:  
     _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0)
         .animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeOutBack, // حركة سلسة ومرنة
+      curve: Curves.easeOutBack,   
     ));
 
-    _controller.forward(); // بدء الأنيميشن
+    _controller.forward();  
 
-    // بعد 5 ثواني نبدلو للصفحة welcome
+         
     Timer(const Duration(seconds: 5), () {
       Navigator.pushReplacementNamed(context, '/welcome');
     });
@@ -47,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFFFF), // خلفية بيضاء
+      backgroundColor: const Color(0xFFFFFFFF), 
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -56,8 +56,8 @@ class _SplashScreenState extends State<SplashScreen>
               child: ScaleTransition(
                 scale: _scaleAnimation,
                 child: Image.asset(
-                  "assets/images/logo.jpeg", // مسار الـ logo
-                  width: 200, // حجم أكبر شويّة
+                  "assets/images/logo.jpeg",   
+                  width: 200, 
                 ),
               ),
             ),

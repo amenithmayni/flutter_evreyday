@@ -48,7 +48,7 @@ class _AjouterHabitPageState extends State<AjouterHabitPage> {
         'type': type.isNotEmpty ? type : '',
         'duree': '${duration.toInt()} min',
         'heure': time != null ? '${time!.hour}:${time!.minute}' : '',
-        'completed': false, // نبقيها false تلقائياً
+        'completed': false, 
       }),
     );
 
@@ -71,7 +71,7 @@ class _AjouterHabitPageState extends State<AjouterHabitPage> {
 
     switch (_currentStep) {
       case 0:
-        motivation = "Commencez votre nouvelle habitude avec énergie!";
+        motivation = "Start your new habit with energy!";
         content = Card(
           color: Colors.teal.shade50,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -88,7 +88,7 @@ class _AjouterHabitPageState extends State<AjouterHabitPage> {
         );
         break;
       case 1:
-        motivation = "Choisissez le type qui vous inspire le plus!";
+        motivation = "Choose the type that inspires you the most!";
         content = Wrap(
           spacing: 10,
           alignment: WrapAlignment.center,
@@ -104,7 +104,7 @@ class _AjouterHabitPageState extends State<AjouterHabitPage> {
         );
         break;
       case 2:
-        motivation = "Définissez la durée idéale pour cette habitude!";
+        motivation = "Define the ideal duration for this habit!";
         content = Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -121,7 +121,7 @@ class _AjouterHabitPageState extends State<AjouterHabitPage> {
         );
         break;
       case 3:
-        motivation = "Choisissez l'heure parfaite pour votre habitude!";
+        motivation = "Choose the perfect time for your habi!";
         content = Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -141,7 +141,7 @@ class _AjouterHabitPageState extends State<AjouterHabitPage> {
         );
         break;
       case 4:
-        motivation = "Voici le résumé final de votre habitude:";
+        motivation = "Here is the final summary of your habit";
         content = Card(
           color: Colors.teal.shade50,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

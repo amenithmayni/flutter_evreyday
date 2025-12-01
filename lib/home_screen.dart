@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -27,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, String>> notifications = [];
   bool _isLoading = true;
   int _currentIndex = 0;
-  File? profileImage;
+  File? profileImage;//nul
   int notifCount = 0;
 
   DateTime selectedDate = DateTime.now();
@@ -35,7 +36,9 @@ class _HomeScreenState extends State<HomeScreen> {
   int currentMonthIndex = DateTime.now().month - 1;
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();// ENVOI LES NOTIFICATION
+
+  Timer? _habitCheckTimer; //Chaque minute qui utilise
 
   @override
   void initState() {
@@ -43,6 +46,13 @@ class _HomeScreenState extends State<HomeScreen> {
     tz.initializeTimeZones();
     _initNotifications();
     fetchHabits();
+    _startHabitChecker();//commence à vérifier Les not
+  }
+
+  @override
+  void dispose() {
+    _habitCheckTimer?.cancel();
+    super.dispose();
   }
 
   void _initNotifications() {
@@ -64,6 +74,58 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _startHabitChecker() {//commence à vérifier Les not
+    _habitCheckTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+      _checkHabitsForNotifications();
+    });
+  }
+// :::::::TEST HABIT NOTIFICATION :::::::::::::
+  void _checkHabitsForNotifications() {
+    final now = TimeOfDay.now();
+
+    for (var habit in habits) {
+      if (habit['completed'] == false) {
+        final habitTimeParts = habit['heure'].split(':');
+        if (habitTimeParts.length == 2) {
+          final int hour = int.tryParse(habitTimeParts[0]) ?? 0;
+          final int minute = int.tryParse(habitTimeParts[1]) ?? 0;//Convertir du texte en nombre
+
+          if (now.hour == hour && now.minute == minute) {
+            _showHabitNotification(habit['nom']);
+          }
+        }
+      }
+    }
+  }
+
+  void _showHabitNotification(String habitName) {
+    final today = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    final message = 'The habit "$habitName" was not performed on $today.';
+
+    flutterLocalNotificationsPlugin.show(
+      habitName.hashCode,
+      'Habit Reminder',
+      message,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(//son fort et une vibration.
+          'habit_channel',
+          'Habit Notifications',
+          importance: Importance.max,//Elle apparaît au-dessus des autres notifications.
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+    );
+
+    setState(() {
+      notifications.add({
+        'title': 'Habit Reminder',
+        'body': message,
+      });
+      notifCount = notifications.length;
+    });
+  }
+//LISTE DES NITIFICATION
   void _showNotificationsPanel() {
     setState(() => notifCount = 0);
     showModalBottomSheet(
@@ -92,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
-
+//Réinitialiser le statut des habitudes quotidiennes
   void _resetCompletedDaily() {
     DateTime today = DateTime.now();
     if (today.day != lastResetDate.day ||
@@ -102,44 +164,6 @@ class _HomeScreenState extends State<HomeScreen> {
         habit['completed'] = false;
       }
       lastResetDate = today;
-    }
-  }
-
-  void _scheduleDailyNotification(String habitName, String heure) {
-    final parts = heure.split(':');
-    final hour = int.tryParse(parts[0]) ?? 0;
-    final minute = int.tryParse(parts[1]) ?? 0;
-
-    tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    tz.TZDateTime scheduledTime =
-        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
-    if (scheduledTime.isBefore(now)) {
-      scheduledTime = scheduledTime.add(const Duration(days: 1));
-    }
-
-    flutterLocalNotificationsPlugin.zonedSchedule(
-      habitName.hashCode,
-      'Habit Reminder',
-      '$habitName n\'est pas complété',
-      scheduledTime,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-            'habit_channel', 'Habit Notifications',
-            importance: Importance.max, priority: Priority.high),
-        iOS: DarwinNotificationDetails(),
-      ),
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
-  }
-
-  void _scheduleAllDailyNotifications() {
-    for (var habit in habits) {
-      if (!habit['completed']) {
-        _scheduleDailyNotification(habit['nom'], habit['heure']);
-      }
     }
   }
 
@@ -164,7 +188,6 @@ class _HomeScreenState extends State<HomeScreen> {
           }).toList();
 
           _resetCompletedDaily();
-          _scheduleAllDailyNotifications();
           _isLoading = false;
         });
       } else {
@@ -231,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onHabitAdded() {
     fetchHabits();
   }
-
+//Choisissez une image
   Future<void> pickProfileImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) {
@@ -240,8 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
   }
-
-  // ------------------- Month Carousel -------------------
+//Les 12 mois de l'année en cours
   Widget buildMonthCarousel() {
     return SizedBox(
       height: 50,
@@ -278,8 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  // ------------------- TableCalendar -------------------
+//Jours calendaires
   Widget buildCalendar() {
     return TableCalendar(
       firstDay: DateTime.utc(2020, 1, 1),
@@ -340,7 +361,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .toList(),
     );
   }
-
+// LISTE DES HABIT
   Widget _habitCard(int index, Map<String, dynamic> habit) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -394,7 +415,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tabs = [_buildHome(), _buildProfile(), Container()]; // Chat placeholder
+    final tabs = [_buildHome(), _buildProfile(), Container()];
 
     return Scaffold(
       appBar: AppBar(
@@ -402,9 +423,9 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         title: Text("Welcome, ${widget.userName}", style: const TextStyle(color: Colors.black, fontSize: 17)),
         actions: [
-          Stack(
+          Stack(//Superposer des éléments les uns sur les autres
             children: [
-              IconButton(
+              IconButton(//Notification Icon
                 icon: const Icon(Icons.notifications_none, color: Colors.black),
                 onPressed: _showNotificationsPanel,
               ),
@@ -427,7 +448,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(width: 16),
           GestureDetector(
-            onTap: pickProfileImage,
+            onTap: pickProfileImage,//Profile Image
             child: CircleAvatar(
               radius: 18,
               backgroundColor: Colors.grey.shade300,
@@ -437,9 +458,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(width: 16),
         ],
+        //Body
       ),
       body: tabs[_currentIndex],
-      floatingActionButton: _currentIndex == 0
+      floatingActionButton: _currentIndex == 0 //FloatingActionButton  +
           ? FloatingActionButton(
               onPressed: () async {
                 await Navigator.push(
@@ -451,6 +473,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Icon(Icons.add),
             )
           : null,
+          //BottomNavigationBar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         selectedItemColor: Colors.teal,

@@ -66,7 +66,7 @@ class _SignUpPageState extends State<RegisterScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Navigator.pop(context); // العودة للـ Login
+        Navigator.pop(context); 
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e")));
